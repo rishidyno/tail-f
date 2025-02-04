@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <div id="log-container">
+        <pre id="log-content"> Connecting....</pre>
+    </div>
+    <script>
+        const ws = new WebSocket('ws://localhost:8080');
+
+        const logContent = document.getElementById('log-content');
+
+        ws.onopen = () => {
+            logContent.textContent = '';
+        }
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.lines) {
+                    data.lines.forEach(line => {
+                        if (line.trim()) logContent.textContent += (logContent.textContent ? '\n' : '') + line;
+                    });
+                    logContent.scrollTop = logContent.scrollHeight;
+                } else if (data.error) {
+                    logContent.textContent += (logContent.textContent ? '\n' : '') + `Error: ${data.error}`;
+                }
+            } catch (err) {
+                console.log(err);
+                logContent.textContent += (logContent.textContent ? '\n' : '') + 'Error processing data';
+            }
+        }
+
+        ws.onerror = () => {
+            logContent.textContent += (logContent.textContent ? '\n' : '') + 'WebSocket error occured';
+        }
+
+        ws.onclose = () => {
+            logContent.textContent += (logContent.textContent ? '\n' : '') + 'Connection closed';
+        }
+    </script>
+</body>
+
+</html>
